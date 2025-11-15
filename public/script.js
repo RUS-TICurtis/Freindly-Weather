@@ -1,9 +1,8 @@
-// This function communicates with the Node.js backend (server.js)
+
 async function getWeather() {
     // Get city input value
     const city = document.getElementById('cityInput').value;
     
-    // Cache new and existing elements
     const weatherDiv = document.querySelector('.weather');
     const errorDiv = document.getElementById('error');
     const weatherIconEl = document.getElementById('weatherIcon');
@@ -11,7 +10,7 @@ async function getWeather() {
     const tempEl = document.getElementById('temp');
     const humidityEl = document.getElementById('humidity');
     const windEl = document.getElementById('wind');
-    const weatherDescEl = document.getElementById('weatherDesc'); // NEW ELEMENT
+    const weatherDescEl = document.getElementById('weatherDesc');
 
     if (!city) {
         errorDiv.textContent = 'Please enter a city name.';
@@ -20,16 +19,13 @@ async function getWeather() {
         return;
     }
 
-    // Hide previous results and errors
     weatherDiv.classList.add('hidden');
     errorDiv.classList.add('hidden');
 
     try {
-        // The script fetches data from YOUR Node server's '/weather' endpoint
         const response = await fetch(`/weather?city=${city}`);
         
         if (!response.ok) {
-            // If the HTTP status is not 200-299, throw an error.
             const errorData = await response.json();
             
             if (response.status === 404) {
@@ -37,8 +33,6 @@ async function getWeather() {
             }
             throw new Error(errorData.error || `Server responded with status: ${response.status}`);
         }
-
-        // Parse the JSON data
         const data = await response.json();
 
         // --- Data Extraction and Validation ---
