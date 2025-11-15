@@ -14,7 +14,7 @@ const WEATHER_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
 
 app.use(express.static(path.join(__dirname)));
 
-// API Route to Fetch Weather Data ---
+// API Route to Fetch Weather Data 
 app.get('/weather', async (req, res) => {
     // 1. Check for API Key
     if (!API_KEY) {
