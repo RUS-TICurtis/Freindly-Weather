@@ -1,20 +1,20 @@
-// Import necessary modules
+
 const express = require('express');
 const axios = require('axios');
-require('dotenv').config(); // Loads environment variables from .env file
+require('dotenv').config(); 
 const path = require('path');
 
 const app = express();
 const PORT = 3000;
 
-// --- CONFIGURATION ---
+
 const API_KEY = process.env.WEATHER_API_KEY;
 const WEATHER_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
 
-// Middleware to serve static files from the 'public' directory
+
 app.use(express.static(path.join(__dirname)));
 
-// --- API Route to Fetch Weather Data ---
+// API Route to Fetch Weather Data ---
 app.get('/weather', async (req, res) => {
     // 1. Check for API Key
     if (!API_KEY) {
@@ -32,7 +32,8 @@ app.get('/weather', async (req, res) => {
     try {
         // Construct the full API request URL
         const apiUrl = `${WEATHER_API_BASE_URL}?q=${city}&units=metric&appid=${API_KEY}`;
-        console.log(`DEBUG: 2. Attempting to call external API: ${apiUrl}`);
+
+        console.log("DEBUG: 2. Attempting to fetch from external API...");
 
         // 3. Make the secure request to the external API
         const response = await axios.get(apiUrl);
@@ -65,7 +66,10 @@ app.get('/weather', async (req, res) => {
 // --- Start the Server ---
 app.listen(PORT, () => {
     console.log(`\n--- SERVER STARTUP ---`);
-    console.log(`Server is running on http://localhost:${PORT}`);
-    console.log(`API Key Status: ${API_KEY ? 'Loaded Successfully' : 'ERROR: Missing!'}`);
+    console.log(`Server is running at http://localhost:${PORT}`);
+    
+    if (!API_KEY) {
+        console.log("!!! WARNING: API Key is missing. Check your .env file. The app will fail to fetch weather data.");
+    }
     console.log(`----------------------\n`);
 });
