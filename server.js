@@ -8,7 +8,7 @@ const app = express();
 const PORT = 3000;
 
 
-const API_KEY = process.env.WEATHER_API_KEYWEATHER_API_KEY;
+const API_KEY = 3046a39cff6cd606622919c19af36166;
 const WEATHER_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
 
 
@@ -72,4 +72,5 @@ app.listen(PORT, () => {
         console.log("!!! WARNING: API Key is missing. Check your .env file. The app will fail to fetch weather data.");
     }
     console.log(`----------------------\n`);
+
 });
