@@ -11,14 +11,22 @@ console.log(`Backend URL set to: ${BACKEND_URL}`);
 // --- DOM Element References ---
 const weatherDiv = document.querySelector('.weather');
 const errorDiv = document.getElementById('error');
+const forecastCard = document.querySelector('.forecast-card');
+const forecastContainer = document.getElementById('forecast');
 const locationNotice = document.getElementById('locationNotice');
 const cityInput = document.getElementById('cityInput');
 const searchBtn = document.getElementById('searchBtn');
 const refreshBtn = document.getElementById('refreshBtn');
+const menuBtn = document.getElementById('menuBtn');
+const menuPopup = document.getElementById('menuPopup');
+const toggleForecastBtn = document.getElementById('toggleForecastBtn');
 const weatherIconEl = document.getElementById('weatherIcon');
 const cityEl = document.getElementById('cityName');
 const tempEl = document.getElementById('temp');
+const cityTimeEl = document.getElementById('cityTime');
 const humidityEl = document.getElementById('humidity');
+const backgroundSunIcon = document.getElementById('background-sun-icon');
+const backgroundMoonIcon = document.getElementById('background-moon-icon');
 const windEl = document.getElementById('wind');
 const weatherDescEl = document.getElementById('weatherDesc');
 
@@ -53,13 +61,147 @@ function updateWeatherDisplay(data) {
     const windSpeedKmH = Math.round(windSpeed * 3.6);
     windEl.innerText = windSpeedKmH + ' Km/h'; 
 
+    // 5. Update City's Local Time
+    const timezoneOffset = data.timezone; // Shift in seconds from UTC
+    const now = new Date();
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const cityTime = new Date(utcTime + (timezoneOffset * 1000));
+
+    const formattedTime = cityTime.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+    cityTimeEl.innerText = `${formattedTime} | `;
+
+    // 6. Update Dynamic Background Icon Visibility
+    // Check time from 5:30 AM to 5:30 PM (17:30)
+    const currentMinutes = cityTime.getHours() * 60 + cityTime.getMinutes();
+    const sunriseMinutes = 5 * 60 + 30; // 5:30 AM
+    const sunsetMinutes = 17 * 60 + 30; // 5:30 PM
+
+    if (currentMinutes >= sunriseMinutes && currentMinutes < sunsetMinutes) {
+        backgroundSunIcon.classList.add('visible');
+        backgroundMoonIcon.classList.remove('visible');
+    } else {
+        backgroundSunIcon.classList.remove('visible');
+        backgroundMoonIcon.classList.add('visible');
+    }
+
     showWeather();
 }
 
+// This function updates the DOM with 5-day forecast data
+function updateForecastDisplay(data) {
+    forecastContainer.innerHTML = ''; // Clear previous forecast
+
+    // Process the 3-hour forecast data into daily summaries
+    const dailyData = {};
+    for (const forecast of data.list) {
+        const date = new Date(forecast.dt * 1000);
+        const day = date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+
+        if (!dailyData[day]) {
+            dailyData[day] = {
+                temps: [],
+                humidities: [],
+                dayIcon: null,
+                nightIcon: null,
+                date: date
+            };
+        }
+        dailyData[day].temps.push(forecast.main.temp);
+        dailyData[day].humidities.push(forecast.main.humidity);
+
+        // Use 'pod' (part of day) to find day 'd' and night 'n' icons
+        if (forecast.sys.pod === 'd' && !dailyData[day].dayIcon) {
+            dailyData[day].dayIcon = forecast.weather[0].icon;
+        }
+        if (forecast.sys.pod === 'n' && !dailyData[day].nightIcon) {
+            dailyData[day].nightIcon = forecast.weather[0].icon;
+        }
+    }
+
+    // Create and display forecast elements for the next 5 days
+    const next7Days = Object.values(dailyData).slice(0, 7);
+
+    next7Days.forEach(dayData => {
+        const date = dayData.date;
+        const today = new Date();
+        let dayName;
+
+        if (date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()) {
+            dayName = 'Today';
+        } else {
+            dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+        }
+
+        // Use day icon, fallback to night icon if day is not available, and vice-versa
+        const dayIcon = dayData.dayIcon || dayData.nightIcon;
+        const nightIcon = dayData.nightIcon || dayData.dayIcon;
+
+        const maxTemp = Math.round(Math.max(...dayData.temps));
+        const avgHumidity = Math.round(dayData.humidities.reduce((a, b) => a + b, 0) / dayData.humidities.length);
+
+        const dayElement = document.createElement('div');
+        dayElement.className = 'forecast-day';
+        dayElement.innerHTML = `
+            <p class="forecast-day-name">${dayName}</p>
+            <div class="forecast-icons"><img src="https://openweathermap.org/img/wn/${dayIcon}.png" alt="day icon" class="forecast-icon" /><img src="https://openweathermap.org/img/wn/${nightIcon}.png" alt="night icon" class="forecast-icon" /></div>
+            <p class="forecast-humidity"><i class="fas fa-tint"></i>${avgHumidity}%</p>
+            <p class="forecast-temp">${maxTemp}°</p>
+        `;
+        forecastContainer.appendChild(dayElement);
+    });
+}
+
+// --- NEW: Function to update the DOM with today's hourly forecast ---
+function updateTodayForecastDisplay(data) {
+    const todayForecastContainer = document.getElementById('todayForecastContainer');
+    todayForecastContainer.innerHTML = ''; // Clear previous forecast
+
+    // Get the next 8 entries from the forecast list (8 entries * 3 hours = 24 hours)
+    // This shows the forecast from the next available 3-hour slot onwards.
+    const next24HoursEntries = data.list.slice(0, 8);
+
+
+    if (next24HoursEntries.length === 0) {
+        todayForecastContainer.innerHTML = '<p>No hourly data available for today.</p>';
+        return;
+    }
+    next24HoursEntries.forEach(entry => {
+        const time = new Date(entry.dt * 1000).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            hour12: true
+        });
+        const icon = entry.weather[0].icon;
+        const temp = Math.round(entry.main.temp);
+        const humidity = entry.main.humidity;
+
+        const itemElement = document.createElement('div');
+        itemElement.className = 'today-forecast-item';
+        itemElement.innerHTML = `
+            <p class="today-forecast-time">${time}</p>
+            <img src="https://openweathermap.org/img/wn/${icon}.png" alt="weather icon" class="today-forecast-icon" />
+            <p class="today-forecast-temp">${temp}°</p>
+            <p class="today-forecast-humidity"><i class="fas fa-tint"></i>${humidity}%</p>
+        `;
+        todayForecastContainer.appendChild(itemElement);
+    });
+}
 // --- UI State Management Functions ---
 function showLoading(message = 'Loading...') {
     errorDiv.classList.add('hidden');
     weatherDiv.classList.remove('hidden'); // Show the weather block
+
+    // Only show the forecast card if it's not currently hidden.
+    // This respects the user's choice to toggle it off.
+    if (!forecastCard.classList.contains('hidden')) {
+        forecastCard.classList.add('loading');
+    }
+
     weatherDiv.classList.add('loading');   // Add loading class for skeleton effect
     weatherDiv.dataset.loadingText = message; // Set the text for the CSS pseudo-element
     console.log(message); // Placeholder for a real loading indicator
@@ -67,20 +209,31 @@ function showLoading(message = 'Loading...') {
 
 function showWeather() {
     errorDiv.classList.add('hidden');
+    weatherDiv.classList.remove('hidden');  // Ensure main card is visible
+
+    // Only remove loading from the forecast card if it's not hidden.
+    if (!forecastCard.classList.contains('hidden')) {
+        forecastCard.classList.remove('loading');
+    }
     weatherDiv.classList.remove('loading'); // Remove skeleton effect
-    weatherDiv.classList.remove('hidden');  // Ensure it's visible
 }
 
 function showError(message) {
     errorDiv.textContent = message;
     errorDiv.classList.remove('hidden');
     weatherDiv.classList.add('hidden');
+    forecastCard.classList.add('hidden'); // Hide cards on error
+    if (backgroundSunIcon) backgroundSunIcon.classList.remove('visible');
+    if (backgroundMoonIcon) backgroundMoonIcon.classList.remove('visible');
     weatherDiv.classList.remove('loading');
 }
 
 function hideAll() {
     weatherDiv.classList.add('hidden');
+    forecastCard.classList.add('hidden');
     errorDiv.classList.add('hidden');
+    if (backgroundSunIcon) backgroundSunIcon.classList.remove('visible');
+    if (backgroundMoonIcon) backgroundMoonIcon.classList.remove('visible');
     weatherDiv.classList.remove('loading');
 }
 
@@ -107,6 +260,10 @@ function showGeoPrompt() {
 
 function hideGeoPrompt() {
     if (geoPromptModal) geoPromptModal.classList.add('hidden');
+}
+
+function hideMenu() {
+    if (menuPopup) menuPopup.classList.add('hidden');
 }
 
 // --- NEW: Popup Modal Functions ---
@@ -155,17 +312,36 @@ async function getWeather(cityOverride) {
     cityInput.disabled = true;
 
     try {
-        const response = await fetch(`${BACKEND_URL}/weather?city=${city}`);
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            // Throw an error with the message from the server
-            throw new Error(errorData.error || 'An unknown error occurred.');
+        // Fetch current weather and forecast data concurrently
+        const [weatherResponse, forecastResponse] = await Promise.all([
+            fetch(`${BACKEND_URL}/weather?city=${city}`),
+            fetch(`${BACKEND_URL}/forecast?city=${city}`)
+        ]);
+
+        if (!weatherResponse.ok) {
+            // Check content type before parsing as JSON
+            const contentType = weatherResponse.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await weatherResponse.json();
+                throw new Error(errorData.error || 'Failed to fetch current weather.');
+            } else {
+                throw new Error(`Server error: ${weatherResponse.status} ${weatherResponse.statusText}`);
+            }
+        }
+        if (!forecastResponse.ok) {
+            // Don't throw, just log it. The app can still show current weather.
+            console.error('Failed to fetch forecast data.');
         }
 
-        const data = await response.json();
-        updateWeatherDisplay(data);
+        const weatherData = await weatherResponse.json();
+        updateWeatherDisplay(weatherData);
 
+        // Only parse and display the forecast if the request was successful
+        if (forecastResponse.ok) {
+            const forecastData = await forecastResponse.json();
+            updateForecastDisplay(forecastData);
+            updateTodayForecastDisplay(forecastData);
+        }
     } catch (err) {
         console.error("Weather fetching error (client-side):", err.message);
         const finalMessage = err.message.includes('City not found')
@@ -194,19 +370,34 @@ async function getWeatherByCoordinates(lat, lon) {
 
     try {
         // The script fetches data from YOUR Node server's new '/weather-coords' endpoint
-        const response = await fetch(`${BACKEND_URL}/weather-coords?lat=${lat}&lon=${lon}`);
+        const [weatherResponse, forecastResponse] = await Promise.all([
+            fetch(`${BACKEND_URL}/weather-coords?lat=${lat}&lon=${lon}`),
+            fetch(`${BACKEND_URL}/forecast-coords?lat=${lat}&lon=${lon}`)
+        ]);
         
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to fetch weather for your location.');
+        if (!weatherResponse.ok) {
+            // Check content type before parsing as JSON
+            const contentType = weatherResponse.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                const errorData = await weatherResponse.json();
+                throw new Error(errorData.error || 'Failed to fetch weather for your location.');
+            } else {
+                throw new Error(`Server error: ${weatherResponse.status} ${weatherResponse.statusText}`);
+            }
+        }
+        if (!forecastResponse.ok) {
+            console.error('Failed to fetch forecast data for your location.');
         }
 
-        const data = await response.json();
-        updateWeatherDisplay(data);
-        
-        // By commenting out the line below, the search bar will remain empty
-        // after the initial automatic location fetch.
-        // cityInput.value = data.name;
+        const weatherData = await weatherResponse.json();
+        updateWeatherDisplay(weatherData);
+
+        // Only parse and display the forecast if the request was successful
+        if (forecastResponse.ok) {
+            const forecastData = await forecastResponse.json();
+            updateForecastDisplay(forecastData);
+            updateTodayForecastDisplay(forecastData);
+        }
 
     } catch (err) {
         console.error("Coordinate weather fetching error (client-side):", err);
@@ -337,6 +528,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // --- Menu Button Handlers ---
+    if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent the global click listener from firing
+            menuPopup.classList.toggle('hidden');
+        });
+    }
+    if (toggleForecastBtn) {
+        toggleForecastBtn.addEventListener('click', () => {
+            forecastCard.classList.toggle('hidden');
+            hideMenu(); // Hide menu after selection
+        });
+    }
+
+    // --- Global Click Listener to Hide All Popups ---
+    document.addEventListener('click', (e) => {
+        // Hide menu if click is outside
+        if (!menuPopup.classList.contains('hidden') && !menuPopup.contains(e.target) && e.target !== menuBtn) {
+            hideMenu();
+        }
+        // The other popups already have overlay-click-to-hide logic, which is more specific and user-friendly.
+        // This global listener is primarily for the new menu which doesn't have an overlay.
+    });
 
     // --- Geolocation Prompt Button Handlers ---
     if (closeGeoBtn) {

@@ -11,6 +11,7 @@ const PORT = 3015;
 // IMPORTANT: On Render/Vercel, the API key is loaded from the Environment Variables set in the dashboard.
 const API_KEY = process.env.WEATHER_API_KEY;
 const WEATHER_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
+const FORECAST_API_BASE_URL = 'https://api.openweathermap.org/data/2.5/forecast';
 
 // Middleware to serve static files from the ROOT directory
 // This allows index.html, style.css, and script.js (and images/) to be loaded
@@ -103,6 +104,71 @@ app.get('/weather-coords', async (req, res) => {
         }
         
         res.status(500).json({ error: "Failed to retrieve coordinate data from external weather service." });
+    }
+});
+
+// --- API Route to Fetch 5-Day Forecast by City Name ---
+// Endpoint: /forecast?city=<CITY_NAME>
+app.get('/forecast', async (req, res) => {
+    if (!API_KEY) {
+        return res.status(500).json({ error: "Server configuration error: API Key is missing." });
+    }
+
+    const city = req.query.city;
+    if (!city) {
+        return res.status(400).json({ error: "Missing city query parameter." });
+    }
+
+    console.log(`DEBUG: Server received forecast request for city: ${city}`);
+    
+    try {
+        const apiUrl = `${FORECAST_API_BASE_URL}?q=${city}&units=metric&appid=${API_KEY}`;
+        const response = await axios.get(apiUrl);
+        
+        console.log("DEBUG: Successfully received 5-day forecast data.");
+        res.json(response.data);
+
+    } catch (error) {
+        if (error.response) {
+            console.error(`DEBUG: ERROR in forecast API. Status: ${error.response.status}`);
+            if (error.response.status === 404) {
+                return res.status(404).json({ error: "City not found for forecast." });
+            }
+        } else {
+            console.error(`DEBUG: Network or unexpected error in forecast: ${error.message}`);
+        }
+        res.status(500).json({ error: "Failed to retrieve forecast data." });
+    }
+});
+
+// --- API Route to Fetch 5-Day Forecast by Coordinates ---
+// Endpoint: /forecast-coords?lat=<LAT>&lon=<LON>
+app.get('/forecast-coords', async (req, res) => {
+    if (!API_KEY) {
+        return res.status(500).json({ error: "Server configuration error: API Key is missing." });
+    }
+
+    const { lat, lon } = req.query;
+    if (!lat || !lon) {
+        return res.status(400).json({ error: "Missing latitude or longitude for forecast." });
+    }
+
+    console.log(`DEBUG: Server received forecast request for coords: Lat=${lat}, Lon=${lon}`);
+    
+    try {
+        const apiUrl = `${FORECAST_API_BASE_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`;
+        const response = await axios.get(apiUrl);
+        
+        console.log("DEBUG: Successfully received 5-day forecast data by coords.");
+        res.json(response.data);
+
+    } catch (error) {
+        if (error.response) {
+            console.error(`DEBUG: ERROR in forecast API by coords. Status: ${error.response.status}`);
+        } else {
+            console.error(`DEBUG: Network or unexpected error in forecast by coords: ${error.message}`);
+        }
+        res.status(500).json({ error: "Failed to retrieve forecast data by coords." });
     }
 });
 
