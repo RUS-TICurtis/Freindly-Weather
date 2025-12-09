@@ -9,9 +9,9 @@
 <body>
     
   <div class="card">
-    <img src="images/refresh.png" alt="Refresh Location" id="refreshBtn" title="Get my location" />
 
-    <div class="search">
+    <img src="images/refresh.png" alt="Refresh Location" id="refreshBtn" title="Get my location" />
+     <div class="search">
       <input type="text" id="cityInput" placeholder="Enter a city name" spellcheck="false" />
       <button id="searchBtn"><img src="search.png" alt="Search icon" /></button>
     </div>
@@ -20,8 +20,9 @@
       Invalid city name. Please check and try again.
     </div>
 
+    <div id="locationNotice" class="location-notice hidden"></div>
     <div class="weather hidden">
-      <img src="" class="Weather-icon" id="weatherIcon" alt="Weather Icon here" />
+      <img src="https://openweathermap.org/img/wn/01d@2x.png" class="Weather-icon" id="weatherIcon" alt="Weather Icon here" />
 
       <h1 class="temp" id="temp">22°</h1>
       <h2 class="city" id="cityName">Accra</h2>
@@ -57,6 +58,15 @@
       <div class="modal-content">
         <p id="popupMessage"></p>
         <button id="closePopupBtn" class="close-btn">OK</button>
+      </div>
+    </div>
+
+    <!-- Popup Modal for Geolocation Prompt -->
+    <div id="geoPromptModal" class="modal-overlay hidden">
+      <div class="modal-content geo-prompt">
+        <p>Enable live location to see the weather where you are.</p>
+        <button id="enableGeoBtn" class="geo-btn-enable">Enable</button>
+        <button id="closeGeoBtn" class="geo-btn-close">Not Now</button>
       </div>
     </div>
 

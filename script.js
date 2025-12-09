@@ -11,6 +11,7 @@ console.log(`Backend URL set to: ${BACKEND_URL}`);
 // --- DOM Element References ---
 const weatherDiv = document.querySelector('.weather');
 const errorDiv = document.getElementById('error');
+const locationNotice = document.getElementById('locationNotice');
 const cityInput = document.getElementById('cityInput');
 const searchBtn = document.getElementById('searchBtn');
 const refreshBtn = document.getElementById('refreshBtn');
@@ -24,6 +25,11 @@ const weatherDescEl = document.getElementById('weatherDesc');
 const popupModal = document.getElementById('popupModal');
 const popupMessage = document.getElementById('popupMessage');
 const closePopupBtn = document.getElementById('closePopupBtn');
+
+const geoPromptModal = document.getElementById('geoPromptModal');
+const enableGeoBtn = document.getElementById('enableGeoBtn');
+const closeGeoBtn = document.getElementById('closeGeoBtn');
+
 // This function updates the DOM with weather data
 function updateWeatherDisplay(data) {
     // 1. Update City and Temp
@@ -55,6 +61,7 @@ function showLoading(message = 'Loading...') {
     errorDiv.classList.add('hidden');
     weatherDiv.classList.remove('hidden'); // Show the weather block
     weatherDiv.classList.add('loading');   // Add loading class for skeleton effect
+    weatherDiv.dataset.loadingText = message; // Set the text for the CSS pseudo-element
     console.log(message); // Placeholder for a real loading indicator
 }
 
@@ -77,10 +84,36 @@ function hideAll() {
     weatherDiv.classList.remove('loading');
 }
 
+function showLocationNotice(message) {
+    if (locationNotice) {
+        locationNotice.textContent = message;
+        locationNotice.classList.remove('hidden');
+    }
+}
+
+function hideLocationNotice() {
+    if (locationNotice) {
+        locationNotice.classList.add('hidden');
+    }
+}
+
+// --- Geolocation Prompt Modal Functions ---
+let geoPromptInterval; // Variable for the recurring prompt
+let permissionStatus = null; // Variable to hold the permission status object
+
+function showGeoPrompt() {
+    if (geoPromptModal) geoPromptModal.classList.remove('hidden');
+}
+
+function hideGeoPrompt() {
+    if (geoPromptModal) geoPromptModal.classList.add('hidden');
+}
+
 // --- NEW: Popup Modal Functions ---
 let popupTimeout; // Variable to hold the timeout
 
 function showPopup(message) {
+    hideGeoPrompt(); // Ensure geo prompt is hidden if validation popup shows
     // Clear any existing timer to prevent premature closing
     clearTimeout(popupTimeout);
 
@@ -98,12 +131,20 @@ function hidePopup() {
 
 
 // Function to fetch weather using city name (called when user searches)
-async function getWeather() {
-    const city = cityInput.value.trim();
+async function getWeather(cityOverride) {
+    // Stop prompting for location if the user decides to search manually
+    clearInterval(geoPromptInterval);
+
+    // Only hide the location notice if this is a user-initiated search (no cityOverride) or on first load
+    if (!cityOverride) {
+        hideLocationNotice();
+    }
+
+    const city = cityOverride || cityInput.value.trim();
     
-    // Check for empty city *before* showing the main loader
-    if (!city) {
-        showPopup('Please enter a city name.');
+    // If it's a manual search (no override) and the input is empty, show popup.
+    if (!city && !cityOverride) { 
+        showPopup('Please enter a city name.'); // Only show popup for manual empty search
         return;
     }
     showLoading('Fetching weather...');
@@ -141,6 +182,9 @@ async function getWeather() {
 
 // NEW: Function to fetch weather using coordinates (called on load)
 async function getWeatherByCoordinates(lat, lon) {
+    // Hide the default location notice if we get coordinates successfully.
+    hideLocationNotice();
+
     console.log(`Fetching weather for coordinates: Lat=${lat}, Lon=${lon}`);
     showLoading('Fetching weather for your location...');
 
@@ -175,35 +219,89 @@ async function getWeatherByCoordinates(lat, lon) {
     }
 }
 
-// NEW: Main Geolocation Initialization
-function initGeolocation() {
+// Function to handle the actual position request
+function requestPosition() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             // Success handler
             (position) => {
-                // If successful, fetch weather using the coordinates
                 getWeatherByCoordinates(position.coords.latitude, position.coords.longitude);
+                // If position is successfully obtained, stop any recurring geo prompt
+                // as permission has now been granted.
+                if (geoPromptInterval) {
+                    clearInterval(geoPromptInterval);
+                    geoPromptInterval = null; // Clear the reference
+                }
+                hideLocationNotice();
             },
             // Error handler
             (error) => {
                 console.warn(`Geolocation error (${error.code}): ${error.message}`);
-                // If user denies or it fails, hide all sections and show an informative message.
-                // We don't show a loader here, just an error.
-                hideAll();
-                showError('Location access denied. Please search for a city to begin.');
+                showLocationNotice('Using default location. You can search for a city or allow location access.');
+                getWeather('Accra');
+
+                // If the geoPromptInterval was active (meaning permission wasn't granted initially),
+                // ensure it continues to run after a denial of the browser's prompt.
+                if (geoPromptInterval) {
+                    clearInterval(geoPromptInterval); // Clear existing one to reset timer
+                    geoPromptInterval = setInterval(showGeoPrompt, 20000); // Restart with the correct interval
+                }
+
             },
-            // Options (optional)
             { timeout: 10000, enableHighAccuracy: true }
         );
     } else {
-        // Geolocation not supported by browser
-        // We don't show a loader here either.
-        hideAll();
         console.log("Geolocation is not supported by this browser.");
-        showError('Geolocation is not supported. Please search for a city.');
+        showLocationNotice('Geolocation not supported. Showing weather for default location.');
+        getWeather('Accra'); // Fetch live data for Accra
     }
 }
 
+// NEW: Main Geolocation Initialization and Polling Setup
+function initGeolocation() {
+    if (navigator.permissions && navigator.permissions.query) {
+        navigator.permissions.query({ name: 'geolocation' }).then(status => {
+            permissionStatus = status; // Store the status object for later use
+            if (permissionStatus.state === 'granted') {
+                // 1. Permission is already granted. Fetch immediately.
+                clearInterval(geoPromptInterval); // Ensure no prompt is running if permission is granted
+                geoPromptInterval = null;
+                requestPosition();
+                // 2. Polling to refresh weather is now disabled as per user request.
+                // setInterval(requestPosition, 30000);
+                // The notice can be distracting, so we can keep it minimal or remove it
+                // showLocationNotice('Live location is active. Weather will auto-refresh.');
+            } else {
+                // Permission is 'prompt' or 'denied'.
+                // 1. Do a one-time request (which will show the default city).
+                requestPosition();
+
+                // 2. Set up a recurring prompt to ask for permission.
+                // This will repeatedly ask the user to enable location.
+                clearInterval(geoPromptInterval); // Clear any old interval
+                geoPromptInterval = setInterval(() => {
+                    showGeoPrompt();
+                }, 20000); // Ask every 20 seconds
+            }
+
+            // Listen for changes in permission status
+            permissionStatus.onchange = () => {
+                console.log('Geolocation permission state changed to:', permissionStatus.state);
+                // If permission is granted, immediately fetch the position
+                // instead of reloading the page. This provides a seamless experience.
+                if (permissionStatus.state === 'granted') {
+                    // Stop the recurring prompt since we now have permission.
+                    clearInterval(geoPromptInterval);
+                    requestPosition();
+                }
+            };
+        });
+    } else {
+        // Fallback for older browsers that don't support the Permissions API.
+        // This will just do a one-time request.
+        requestPosition();
+    }
+}
 
 // Event listeners for search
 document.addEventListener('DOMContentLoaded', () => {
@@ -221,7 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Handle button click
     if (searchBtn) {
-        searchBtn.addEventListener('click', getWeather);
+        // Wrap getWeather in an anonymous function to prevent the event object
+        // from being passed as the 'cityOverride' argument.
+        searchBtn.addEventListener('click', () => getWeather());
     }
 
     // Handle refresh button click
@@ -234,6 +334,28 @@ document.addEventListener('DOMContentLoaded', () => {
         popupModal.addEventListener('click', (e) => {
             if (e.target === popupModal) { // Only close if the overlay itself is clicked
                 hidePopup();
+            }
+        });
+    }
+
+    // --- Geolocation Prompt Button Handlers ---
+    if (closeGeoBtn) {
+        closeGeoBtn.addEventListener('click', hideGeoPrompt);
+    }
+    if (enableGeoBtn) {
+        enableGeoBtn.addEventListener('click', () => {
+            if (permissionStatus && permissionStatus.state === 'denied') {
+                // If permission is denied, we cannot re-prompt.
+                // Instead, we instruct the user how to unblock it manually.
+                hideGeoPrompt();
+                // Use the validation popup to show instructions. Don't auto-hide it.
+                clearTimeout(popupTimeout); // Prevent auto-hiding
+                showPopup('To enable, click the lock icon in the address bar and set Location to "Allow".');
+            } else {
+                // If permission is 'prompt', re-triggering the request will show
+                // the browser's permission dialog again.
+                hideGeoPrompt();
+                requestPosition();
             }
         });
     }

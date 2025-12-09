@@ -25,6 +25,25 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    .location-notice {
+      position: relative;
+      top: auto; /* remove top positioning */
+      left: auto; /* remove left positioning */
+      transform: none; /* remove transform */
+      width: 100%; /* full width */
+      max-width: none;
+      background: rgba(0, 0, 0, 0.2);
+      color: #edfffc;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      /* margin-bottom is no longer needed with absolute positioning */
+      text-align: center; /* center the text */
+      font-weight: 300;
+      line-height: 1.4;
+      z-index: 1; /* Sit below the refresh button if they were to overlap */
     }
     .search input {
       border: 0;
@@ -87,6 +106,7 @@
       top: 18px;
       left: 18px;
       width: 24px;
+
       height: 24px;
       cursor: pointer;
       opacity: 0.7;
@@ -182,6 +202,23 @@
   animation: shimmer 1.5s infinite;
 }
 
+/* Add a pseudo-element to show the loading text */
+.weather.loading::before {
+  content: attr(data-loading-text); /* Get text from the data attribute */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 18px;
+  font-weight: 500;
+  z-index: 2; /* Ensure it's above the shimmer effect */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  padding: 10px 20px;
+  border-radius: 10px;
+}
+
 @keyframes shimmer {
   0% {
     left: -100%;
@@ -274,4 +311,44 @@
 }
 .close-btn:active {
   transform: scale(0.95); /* Add a press effect */
+}
+
+/* --- Geolocation Prompt Modal Styles --- */
+.modal-content.geo-prompt {
+  background: #edfffc;
+  color: #5b548a;
+  border-left: 5px solid #00feba;
+}
+
+.modal-content.geo-prompt p {
+  margin-bottom: 25px;
+}
+
+.geo-btn-enable, .geo-btn-close {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 8px;
+}
+
+.geo-btn-enable {
+  background: #5b548a;
+  color: #fff;
+}
+.geo-btn-enable:hover {
+  background: #4a4375;
+}
+
+.geo-btn-close {
+  background: transparent;
+  color: #5b548a;
+  border: 2px solid #d0d0d0;
+}
+.geo-btn-close:hover {
+  background: #e0f5f1;
+  border-color: #b0b0b0;
 }
