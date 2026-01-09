@@ -44,32 +44,32 @@ function getWeatherIconPath(iconCode) {
     // Mapping of OpenWeatherMap icon codes to local files
     const iconMap = {
         // Clear sky
-        '01d': './images/sunny.svg',
-        '01n': './images/clear_night.svg',
+        '01d': '/images/sunny.svg',
+        '01n': '/images/clear_night.svg',
 
         // Few clouds
-        '02d': './images/mostly_sunny.png',
-        '02n': './images/mostly_clear_night.png',
+        '02d': '/images/mostly_sunny.png',
+        '02n': '/images/mostly_clear_night.png',
 
         // Scattered clouds
-        '03d': './images/partly_cloudy.png',
-        '03n': './images/partly_cloudy_night.png',
+        '03d': '/images/partly_cloudy.png',
+        '03n': '/images/partly_cloudy_night.png',
 
         // Broken clouds
-        '04d': './images/mostly_cloudy_day.png',
-        '04n': './images/mostly_cloudy_night.png',
+        '04d': '/images/mostly_cloudy_day.png',
+        '04n': '/images/mostly_cloudy_night.png',
 
         // Shower rain
-        '09d': './images/scattered_showers_day.png',
-        '09n': './images/scattered_showers_night.png',
+        '09d': '/images/scattered_showers_day.png',
+        '09n': '/images/scattered_showers_night.png',
 
         // Rain
-        '10d': './images/showers_rain.png',
-        '10n': './images/showers_rain.png',
+        '10d': '/images/showers_rain.png',
+        '10n': '/images/showers_rain.png',
 
         // Thunderstorm
-        '11d': './images/isolated_scattered_tstorms_day.png',
-        '11n': './images/isolated_scattered_tstorms_night.png',
+        '11d': '/images/isolated_scattered_tstorms_day.png',
+        '11n': '/images/isolated_scattered_tstorms_night.png',
     };
 
     // Return local icon if available, otherwise use API icon
@@ -86,10 +86,17 @@ function updateWeatherDisplay(data) {
     const description = data.weather[0].description;
     weatherDescEl.innerText = description;
 
-    // 3. Update Weather Icon
+    // 3. Update Weather Icon and Favicon
     const iconCode = data.weather[0].icon;
-    weatherIconEl.src = getWeatherIconPath(iconCode);
+    const iconPath = getWeatherIconPath(iconCode);
+    weatherIconEl.src = iconPath;
     weatherIconEl.alt = description;
+
+    // Update Favicon
+    const favicon = document.querySelector('link[rel="icon"]');
+    if (favicon) {
+        favicon.href = iconPath;
+    }
 
     // 4. Update Details
     humidityEl.innerText = data.main.humidity + '%';

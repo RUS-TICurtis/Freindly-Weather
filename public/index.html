@@ -1,52 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather App</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
+  <!-- Mobile Browser Theme Colors -->
+  <meta name="theme-color" content="#101010">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- iOS Web App Capable -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- Prevent automatic phone number detection -->
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- iOS Icons -->
+  <link rel="apple-touch-icon" href="/images/icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/images/icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/images/icon-512.png">
+
+  <!-- Standard Favicon -->
+  <link rel="icon" type="image/png" href="/images/icon-192.png">
+
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="A modern, mobile-optimized weather application providing real-time weather updates and forecasts.">
+  <meta name="keywords" content="weather, forecast, mobile, PWA, weather app">
+
+  <title>Weather App</title>
+
+  <!-- Add Font Awesome for icons -->
+  <link rel="stylesheet" href="fontawesome/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
-    <div class="card">
-        <div class="search">
-            <input type="text" id="cityInput" placeholder="Enter a city name" spellcheck="false">
-            <button id="searchBtn"><img src="search.png" alt="Search icon" ></button>
-        </div>
+  <div class="app-wrapper">
+    <!-- Main Weather Card -->
+    <div class="card weather-card">
+      <!-- NEW: Dynamic Background Sun Icon -->
+      <i class="fas fa-sun" id="background-sun-icon"></i>
+      <!-- NEW: Dynamic Background Moon Icon -->
+      <i class="fas fa-moon" id="background-moon-icon"></i>
+
+      <!-- Hamburger Menu Icon -->
+      <i class="fas fa-bars" id="menuBtn" title="Menu"></i>
+
+      <!-- Menu Popup (hidden by default) -->
+      <div id="menuPopup" class="menu-popup hidden">
+        <ul>
+          <li id="toggleForecastBtn">7-Day Forecast</li>
+        </ul>
+      </div>
+
+      <div class="search">
+        <input type="text" id="cityInput" placeholder="Enter a city name" spellcheck="false" />
+        <button id="searchBtn"><i class="fas fa-search"></i></button>
+      </div>
+      <button id="refreshBtn" class="refresh-btn-bottom" title="Get my location"><i class="fas fa-location-dot"></i> Get
+        my Location</button>
+
+      <div id="error" class="error-message hidden">
+        Invalid city name. Please check and try again.
+      </div>
+
+      <!-- NEW: Wrapper for content to ensure correct stacking -->
+      <div class="content-wrapper">
 
 
-        <div id="error" class="error-message hidden">
-            Invalid city name. Please check and try again.
-        </div>
-        
+        <div id="locationNotice" class="location-notice hidden"></div>
         <div class="weather hidden">
-            
-            <img src="" class="Weather-icon" id="weatherIcon" alt="Weather Icon here">
-            
-            <h1 class="temp" id="temp">22°</h1>
-            
-            <h2 class="city" id="cityName">New york</h2>
+          <!-- Current Weather Display -->
+          <img src="./images/sunny.svg" class="Weather-icon" id="weatherIcon" alt="Weather Icon here" />
+          <h1 class="temp" id="temp">22°</h1>
+          <h2 class="city" id="cityName">Accra</h2>
+          <div class="weather-meta">
+            <p>
+              <span id="cityTime">06:48 AM | </span>
+              <span class="description" id="weatherDesc">Clear Sky</span>
+            </p>
+          </div>
 
-            <p class="description" id="weatherDesc">Description Here</p>
-            
-            <div class="details">
-                <div class="col">
-                    <img src="./images/humidity.png" alt="Humidity Icon here">
-                    <div>
-                        <p class="humidity" id="humidity">50%</p>
-                        <p>Humidity</p>
-                    </div>
-                </div>
-                <div class="col">
-                    <img src="./images/wind.png" alt="wind Icon here">
-                    <div>
-                        <p class="wind" id="wind">15 Km/h</p>
-                        <p>Wind Speed</p>
-                    </div>
-                </div>
+          <!-- Details remain at the bottom -->
+          <div class="details">
+            <div class="col">
+              <img src="./images/humidity-white.png" alt="Humidity Icon here" class="humidity-icon" />
+              <div>
+                <p class="humidity" id="humidity">94%</p>
+                <p>Humidity</p>
+              </div>
             </div>
+            <div class="col">
+              <img src="./images/wind.png" alt="Wind Icon here" />
+              <div>
+                <p class="wind" id="wind">11 Km/h</p>
+                <p>Wind Speed</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- NEW: Integrated Hourly Forecast Section -->
+          <div class="hourly-forecast-section">
+            <!-- <h2 class="hourly-forecast-header">Next 24 Hours</h2> -->
+            <div id="todayForecastContainer" class="today-forecast-container">
+              <!-- Hourly forecast items will be injected here -->
+            </div>
+          </div>
         </div>
+
+      </div> <!-- End of content-wrapper -->
+
+      <!-- Popup Modals remain inside the main card -->
+      <div id="popupModal" class="modal-overlay hidden">
+        <div class="modal-content">
+          <p id="popupMessage"></p>
+          <button id="closePopupBtn" class="close-btn">OK</button>
+        </div>
+      </div>
+
+      <div id="geoPromptModal" class="modal-overlay hidden">
+        <div class="modal-content geo-prompt">
+          <p>Enable live location to see the weather where you are.</p>
+          <button id="enableGeoBtn" class="geo-btn-enable">Enable</button>
+          <button id="closeGeoBtn" class="geo-btn-close">Not Now</button>
+        </div>
+      </div>
     </div>
-    
-    <script src="script.js"></script>
+
+    <!-- New Forecast Card -->
+    <div class="card forecast-card hidden">
+      <i class="fas fa-times close-card-btn" data-target="forecast-card" title="Close"></i>
+      <h2 class="forecast-header">7-Day Forecast</h2>
+      <div id="forecast" class="forecast-container">
+        <!-- Forecast days will be injected here by script.js -->
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('ServiceWorker registration successful:', registration.scope);
+          })
+          .catch((err) => {
+            console.log('ServiceWorker registration failed:', err);
+          });
+      });
+    }
+  </script>
+
+  <script src="js/script.js"></script>
 </body>
+
 </html>

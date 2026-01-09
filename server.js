@@ -1,7 +1,7 @@
 // Import necessary modules
 require('dotenv').config(); // Loads environment variables from .env file
-const createApp = require('./js/server/app');
-const config = require('./js/server/config');
+const createApp = require('./src/server/app');
+const config = require('./src/server/config');
 
 // Create and configure the Express app
 const app = createApp();
