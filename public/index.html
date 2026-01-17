@@ -41,14 +41,13 @@
 </head>
 
 <body>
+  <!-- Background Weather Icons -->
+  <div id="weather-effects"></div>
+  <i class="fas fa-sun" id="background-sun-icon"></i>
+  <i class="fas fa-moon" id="background-moon-icon"></i>
   <div class="app-wrapper">
     <!-- Main Weather Card -->
     <div class="card weather-card">
-      <!-- NEW: Dynamic Background Sun Icon -->
-      <i class="fas fa-sun" id="background-sun-icon"></i>
-      <!-- NEW: Dynamic Background Moon Icon -->
-      <i class="fas fa-moon" id="background-moon-icon"></i>
-
       <!-- Hamburger Menu Icon -->
       <i class="fas fa-bars" id="menuBtn" title="Menu"></i>
 
@@ -140,6 +139,12 @@
     <div class="card forecast-card hidden">
       <i class="fas fa-times close-card-btn" data-target="forecast-card" title="Close"></i>
       <h2 class="forecast-header">7-Day Forecast</h2>
+      <div class="forecast-table-header">
+        <span class="header-day">Day</span>
+        <span class="header-condition">Condition</span>
+        <span class="header-humidity">Humidity</span>
+        <span class="header-temp">Temp</span>
+      </div>
       <div id="forecast" class="forecast-container">
         <!-- Forecast days will be injected here by script.js -->
       </div>

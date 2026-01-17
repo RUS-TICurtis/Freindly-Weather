@@ -140,6 +140,9 @@ function updateWeatherDisplay(data) {
     });
     cityTimeEl.innerText = `${formattedTime} | `;
 
+    // 5. Update Background Icon Visibility
+    updateWeatherEffects(data.weather[0].id);
+
     // 6. Update Dynamic Background Icon Visibility
     // Check time from 5:30 AM to 5:30 PM (17:30)
     const currentHour = cityTime.getHours();
@@ -180,7 +183,51 @@ function updateWeatherDisplay(data) {
         backgroundMoonIcon.classList.add('visible');
     }
 
-    showWeather();
+}
+
+showWeather();
+
+// --- Weather Effects Logic ---
+function updateWeatherEffects(weatherId) {
+    const effectsContainer = document.getElementById('weather-effects');
+    effectsContainer.innerHTML = ''; // Clear existing effects
+
+    // Rain: 2xx (Thunderstorm), 3xx (Drizzle), 5xx (Rain)
+    if ((weatherId >= 200 && weatherId <= 232) ||
+        (weatherId >= 300 && weatherId <= 321) ||
+        (weatherId >= 500 && weatherId <= 531)) {
+        createRain(effectsContainer);
+    }
+    // Snow: 6xx
+    else if (weatherId >= 600 && weatherId <= 622) {
+        createSnow(effectsContainer);
+    }
+}
+
+function createRain(container) {
+    const dropCount = 100; // Number of drops
+    for (let i = 0; i < dropCount; i++) {
+        const drop = document.createElement('div');
+        drop.classList.add('raindrop');
+        drop.style.left = Math.random() * 100 + 'vw';
+        drop.style.animationDuration = Math.random() * 0.5 + 0.5 + 's'; // 0.5 - 1s
+        drop.style.animationDelay = Math.random() * 2 + 's';
+        container.appendChild(drop);
+    }
+}
+
+function createSnow(container) {
+    const flakeCount = 50; // Number of flakes
+    for (let i = 0; i < flakeCount; i++) {
+        const flake = document.createElement('div');
+        flake.classList.add('snowflake');
+        flake.style.left = Math.random() * 100 + 'vw';
+        flake.style.width = Math.random() * 5 + 2 + 'px'; // 2-7px size
+        flake.style.height = flake.style.width;
+        flake.style.animationDuration = Math.random() * 3 + 2 + 's'; // 2-5s
+        flake.style.animationDelay = Math.random() * 5 + 's';
+        container.appendChild(flake);
+    }
 }
 
 // This function updates the DOM with 5-day forecast data

@@ -61,31 +61,33 @@
       padding: 40px 35px;
       text-align: center;
       position: relative;
+      z-index: 10;
+      /* Ensure card is above background weather effects */
       overflow: hidden;
       transition: background 1s ease-in-out;
     }
 
     /* --- Dynamic Time-Based Themes --- */
 
-    /* Day Theme (6:00 - 16:59): Bright, energetic, blue/cyan/gold */
+    /* Day Theme (6:00 - 16:59): Bright, Orange, Yellow */
     .card.day-theme {
-      background: linear-gradient(125deg, #4facfe, #00f2fe, #38f9d7, #4facfe);
-      background-size: 400% 400%;
-      animation: gradientAnimation 20s ease infinite;
+      background: linear-gradient(125deg, #ff9966, #ffcc33, #ffeb3b, #f7b733, #fc4a1a, #ff9966);
+      background-size: 100% 400%;
+      animation: gradientAnimation 25s ease infinite;
     }
 
-    /* Dusk/Dawn Theme (17:00 - 19:59 & 4:00 - 5:59): Warm, pinks, purples, oranges */
+    /* Dusk/Dawn Theme (17:00 - 19:59 & 4:00 - 5:59): Lighter shades, Blue, Yellow, Orange */
     .card.dusk-theme {
-      background: linear-gradient(125deg, #ff9966, #ff5e62, #984D7C, #ff9966);
+      background: linear-gradient(125deg, #56CCF2, #2F80ED, #ffcc33, #ff9966, #56CCF2);
       background-size: 400% 400%;
-      animation: gradientAnimation 20s ease infinite;
+      animation: gradientAnimation 25s ease infinite;
     }
 
-    /* Night Theme (20:00 - 3:59): Dark, deep blues, purples, starry feel */
+    /* Night Theme (20:00 - 3:59): Darker shades of Purple and Black */
     .card.night-theme {
-      background: linear-gradient(125deg, #141E30, #243B55, #4b6cb7, #182848);
+      background: linear-gradient(125deg, #000000, #2c003e, #4b0082, #1a0b2e, #0f0c29, #000000);
       background-size: 400% 400%;
-      animation: gradientAnimation 20s ease infinite;
+      animation: gradientAnimation 25s ease infinite;
     }
 
     .search {
@@ -94,7 +96,7 @@
       align-items: center;
       justify-content: space-between;
       margin-bottom: 15px;
-      margin-top: 15px;
+      margin-top: 35px;
     }
 
     .location-notice {
@@ -140,6 +142,7 @@
     /* Search Input Wrapper for positioning */
     .search-input-wrapper {
       position: relative;
+      left: 12px;
       flex-grow: 1;
       /* Allow it to take up available space */
       display: flex;
@@ -174,7 +177,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 0px;
       /* Space between input and search button */
     }
 
@@ -459,6 +462,45 @@
       opacity: 1;
     }
 
+    /* --- Weather Effects (Rain & Snow) --- */
+    #weather-effects {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      /* Above background icons, below content */
+      overflow: hidden;
+    }
+
+    /* Rain */
+    .raindrop {
+      position: absolute;
+      background-color: rgba(255, 255, 255, 0.6);
+      width: 2px;
+      height: 15px;
+      top: -20px;
+      animation: fall linear infinite;
+    }
+
+    /* Snow */
+    .snowflake {
+      position: absolute;
+      background-color: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      top: -10px;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(105vh);
+      }
+    }
+
     .hourly-forecast-section {
       margin-top: 28px;
       padding-top: 15px;
@@ -556,12 +598,48 @@
       font-size: 24px;
       font-weight: 500;
       margin-top: 0;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
     }
+
+    /* --- Forecast Table Headers --- */
+    .forecast-table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 10px 10px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+      margin-bottom: 15px;
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+
+    .header-day {
+      flex-basis: 50px;
+      text-align: left;
+    }
+
+    .header-condition {
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    /* Icons area */
+    .header-humidity {
+      flex-basis: 75px;
+      text-align: center;
+    }
+
+    .header-temp {
+      flex-basis: 45px;
+      text-align: right;
+    }
+
 
     .forecast-card {
       padding: 40px 25px;
-      max-width: 350px;
+      max-width: 400px;
+      /* Slightly wider to fit headers comfortably */
       animation-name: forecastGradientAnimation;
       /* Use the new animation */
     }
@@ -577,6 +655,8 @@
       align-items: center;
       justify-content: space-between;
       gap: 5px;
+      padding: 0 10px;
+      /* Match header padding */
     }
 
     .forecast-day p {
@@ -586,13 +666,18 @@
     .forecast-day-name {
       font-weight: 400;
       font-size: 16px;
-      flex-basis: 45px;
-      /* Give it a fixed base width */
+      flex-basis: 50px;
+      /* Align with header */
       text-align: left;
     }
 
     .forecast-icons {
       display: flex;
+      justify-content: center;
+      flex-grow: 1;
+      /* Center in the available space */
+      gap: 15px;
+      /* Increased spacing between icons as requested */
     }
 
     .forecast-icon {
@@ -606,7 +691,10 @@
       opacity: 0.8;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 3px;
+      flex-basis: 75px;
+      /* Align with header */
     }
 
     .forecast-humidity img {
@@ -617,8 +705,8 @@
     .forecast-temp {
       font-weight: 500;
       font-size: 16px;
-      flex-basis: 35px;
-      /* Give it a fixed base width */
+      flex-basis: 45px;
+      /* Align with header */
       text-align: right;
     }
 
@@ -656,6 +744,16 @@
       .forecast-card {
         max-width: 100%;
         padding: 20px 12px;
+      }
+
+      /* Mobile adjustments for table headers */
+      .forecast-table-header {
+        font-size: 12px;
+        padding: 0 5px 8px 5px;
+      }
+
+      .forecast-day {
+        padding: 0 5px;
       }
 
       .search input {
