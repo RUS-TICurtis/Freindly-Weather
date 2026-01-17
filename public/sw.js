@@ -1,11 +1,10 @@
 // Service Worker for PWA functionality and offline support
-const CACHE_NAME = 'weather-app-v1';
+const CACHE_NAME = 'weather-app-v2';
 const urlsToCache = [
     '/',
     '/index.html',
     '/css/style.css',
     '/js/script.js',
-    '/fontawesome/css/all.min.css',
     '/images/sunny.svg',
     '/images/humidity-white.png',
     '/images/wind.png'

@@ -8,6 +8,26 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 const BACKEND_URL = isLocal ? LOCAL_BACKEND_URL : RENDER_BACKEND_URL;
 console.log(`Backend URL set to: ${BACKEND_URL}`);
 
+// --- NEW: Auto-Clear Cache Function ---
+async function clearAppCache() {
+    if ('caches' in window) {
+        try {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(key => caches.delete(key)));
+            console.log('Auto-cache clear: All caches deleted.');
+
+            // Optional: Unregister service workers to ensure immediate update
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (let registration of registrations) {
+                await registration.unregister();
+            }
+            console.log('Auto-cache clear: Service Workers unregistered.');
+
+        } catch (err) {
+            console.error('Error clearing cache:', err);
+        }
+    }
+}
 // --- DOM Element References ---
 const weatherDiv = document.querySelector('.weather');
 const errorDiv = document.getElementById('error');
@@ -37,6 +57,7 @@ const closePopupBtn = document.getElementById('closePopupBtn');
 const geoPromptModal = document.getElementById('geoPromptModal');
 const enableGeoBtn = document.getElementById('enableGeoBtn');
 const closeGeoBtn = document.getElementById('closeGeoBtn');
+const clearInputBtn = document.getElementById('clearInputBtn');
 
 // --- Weather Icon Mapping ---
 // Maps OpenWeatherMap icon codes to local image files when available
@@ -541,14 +562,38 @@ function initGeolocation() {
 
 // Event listeners for search
 document.addEventListener('DOMContentLoaded', () => {
+    // --- NEW: Clear Cache on Load ---
+    clearAppCache();
+
     // Run geolocation logic immediately on page load
     initGeolocation();
 
     // Handle Enter key press
     if (cityInput) {
+        // Toggle clear button visibility
+        cityInput.addEventListener('input', () => {
+            if (clearInputBtn) {
+                if (cityInput.value.trim().length > 0) {
+                    clearInputBtn.classList.remove('hidden');
+                } else {
+                    clearInputBtn.classList.add('hidden');
+                }
+            }
+        });
+
         cityInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 getWeather();
+            }
+        });
+    }
+
+    if (clearInputBtn) {
+        clearInputBtn.addEventListener('click', () => {
+            if (cityInput) {
+                cityInput.value = '';
+                cityInput.focus();
+                clearInputBtn.classList.add('hidden');
             }
         });
     }

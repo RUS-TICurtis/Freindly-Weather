@@ -115,6 +115,48 @@
       /* Prevent zoom on focus in iOS */
       font-size: max(16px, 18px);
     }
+/* Search Input Wrapper for positioning */
+.search-input-wrapper {
+    position: relative;
+    flex-grow: 1; /* Allow it to take up available space */
+    display: flex;
+    align-items: center;
+}
+
+/* Clear "x" Icon */
+.clear-icon {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #504e4e;
+    font-size: 1.39rem;
+    padding: 12px; /* Increase click area */
+    display: block; /* Ensure it takes up space */
+}
+
+.clear-icon:hover {
+    color: #ea1b1b;
+}
+
+.clear-icon.hidden {
+    display: none;
+}
+
+/* Adjust search container to work with wrapper */
+.search {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px; /* Space between input and search button */
+}
+
+/* Ensure input takes full width of its wrapper */
+.search input {
+    width: 100%;
+    padding-right: 35px; /* Make room for the clear icon */
+}
 
     .search button {
       border: 0;
@@ -555,7 +597,7 @@
 
     .forecast-humidity i {
       font-size: 14px;
-      filter: invert(1);
+      /* filter: invert(1); */
       /* Keep the white color */
     }
 
