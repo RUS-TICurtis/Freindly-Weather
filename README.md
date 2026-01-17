@@ -108,6 +108,30 @@ A modern, mobile-optimized weather application built with Node.js 24.x, featurin
 
 **Note**: The `render.yaml` specifies Node.js 24.x automatically.
 
+### Deploying to Firebase
+
+1. **Install Firebase CLI**
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. **Login to Firebase**
+   ```bash
+   firebase login
+   ```
+
+3. **Initialize/Deploy**
+   - The project is already configured with `firebase.json` and `.firebaserc`.
+   - Update `.firebaserc` with your project ID.
+   - Deploy:
+     ```bash
+     firebase deploy
+     ```
+
+4. **Environment Variables**
+   For static hosting with Firebase, environment variables like API keys are typically handled differently (e.g., exposed in the build or using Firebase Functions). Since this app uses a backend server (`server.js`), you might need to use Cloud Functions for Firebase to run the API, or ensure the frontend can access the API safely.
+   *Note: This configuration assumes static hosting for the `public` folder. If you need the SSR backend, you'll need to adapt it for Cloud Functions.*
+
 ## Mobile Optimization
 
 This app is fully optimized for mobile devices with:
