@@ -70,5 +70,9 @@ self.addEventListener('activate', (event) => {
             );
         })
     );
-    self.clients.claim();
+    try {
+        self.clients.claim();
+    } catch (err) {
+        console.warn('Clients claim failed:', err);
+    }
 });

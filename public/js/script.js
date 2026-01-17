@@ -7,13 +7,18 @@ const LOCAL_BACKEND_URL = 'http://localhost:3015';
 const hostname = window.location.hostname;
 const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
 
+/**
+ * Determine the backend URL dynamically.
+ */
 let BACKEND_URL;
 if (isLocal) {
     BACKEND_URL = LOCAL_BACKEND_URL;
 } else if (hostname.includes('vercel.app')) {
     BACKEND_URL = VERCEL_BACKEND_URL;
-} else {
+} else if (hostname.includes('onrender.com')) {
     BACKEND_URL = RENDER_BACKEND_URL;
+} else {
+    BACKEND_URL = window.location.origin; // Final fallback
 }
 
 console.log(`Backend URL set to: ${BACKEND_URL}`);
@@ -194,8 +199,6 @@ function updateWeatherDisplay(data) {
     }
 
 }
-
-showWeather();
 
 // --- Weather Effects Logic ---
 function updateWeatherEffects(weatherId) {
