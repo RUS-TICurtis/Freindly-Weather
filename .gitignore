@@ -41,3 +41,4 @@ Thumbs.db
 # Compressed files
 *.zip
 node_modules.zip
+PROJECT_NOTES.md
