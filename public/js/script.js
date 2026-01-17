@@ -1,11 +1,21 @@
 // --- Configuration ---
-const RENDER_BACKEND_URL = 'https://weather-app-qquf.onrender.com';
+const VERCEL_BACKEND_URL = 'https://freindly-weather.vercel.app';
+const RENDER_BACKEND_URL = 'https://freindly-weather.onrender.com';
 const LOCAL_BACKEND_URL = 'http://localhost:3015';
 
 // Automatically determine the backend URL based on the hostname.
-// This allows the app to work both locally and when deployed.
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const BACKEND_URL = isLocal ? LOCAL_BACKEND_URL : RENDER_BACKEND_URL;
+const hostname = window.location.hostname;
+const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.');
+
+let BACKEND_URL;
+if (isLocal) {
+    BACKEND_URL = LOCAL_BACKEND_URL;
+} else if (hostname.includes('vercel.app')) {
+    BACKEND_URL = VERCEL_BACKEND_URL;
+} else {
+    BACKEND_URL = RENDER_BACKEND_URL;
+}
+
 console.log(`Backend URL set to: ${BACKEND_URL}`);
 
 // --- NEW: Auto-Clear Cache Function ---
@@ -481,6 +491,7 @@ async function getWeather(cityOverride) {
             updateForecastDisplay(forecastData);
             updateTodayForecastDisplay(forecastData);
         }
+        showWeather(); // Remove loading state
     } catch (err) {
         console.error("Weather fetching error (client-side):", err.message);
         const finalMessage = err.message.includes('City not found')
@@ -537,7 +548,7 @@ async function getWeatherByCoordinates(lat, lon) {
             updateForecastDisplay(forecastData);
             updateTodayForecastDisplay(forecastData);
         }
-
+        showWeather(); // Remove loading state
     } catch (err) {
         console.error("Coordinate weather fetching error (client-side):", err);
         // Display the actual error from the server or a fallback message.
