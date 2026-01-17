@@ -142,9 +142,35 @@ function updateWeatherDisplay(data) {
 
     // 6. Update Dynamic Background Icon Visibility
     // Check time from 5:30 AM to 5:30 PM (17:30)
+    const currentHour = cityTime.getHours();
     const currentMinutes = cityTime.getHours() * 60 + cityTime.getMinutes();
     const sunriseMinutes = 5 * 60 + 30; // 5:30 AM
     const sunsetMinutes = 17 * 60 + 30; // 5:30 PM
+
+    // --- Dynamic Theme Application ---
+    const cardEl = document.querySelector('.card.weather-card');
+
+    // Remove existing theme classes
+    cardEl.classList.remove('day-theme', 'night-theme', 'dusk-theme');
+
+    // Define Time Ranges
+    // Dawn/Dusk: 17:00 (5 PM) - 19:59 (7:59 PM) AND 04:00 (4 AM) - 06:00 (6 AM)
+    const isEvening = currentHour >= 17 && currentHour < 20;
+    const isMorning = currentHour >= 4 && currentHour < 6;
+
+    // Night: 20:00 (8 PM) - 03:59 (3:59 AM)
+    const isNight = currentHour >= 20 || currentHour < 4;
+
+    // Day: Everything else (approx 06:00 - 16:59)
+    // Note: The 'else' captures the day time.
+
+    if (isNight) {
+        cardEl.classList.add('night-theme');
+    } else if (isEvening || isMorning) {
+        cardEl.classList.add('dusk-theme');
+    } else {
+        cardEl.classList.add('day-theme');
+    }
 
     if (currentMinutes >= sunriseMinutes && currentMinutes < sunsetMinutes) {
         backgroundSunIcon.classList.add('visible');

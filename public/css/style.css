@@ -50,19 +50,40 @@
     .card {
       width: 90%;
       max-width: 470px;
-      background: linear-gradient(125deg, #73cddb, #ffcc33, #5b548a, #ff9966, #2a88e6, #8a2be2, #008080, #a1ddcd);
-      /* A comment to ensure diff is not empty if no other changes are made */
+      /* Default (Day) - slightly tweaked for smoother transition */
+      background: linear-gradient(135deg, #00feba, #5b548a);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite;
+
       color: #fff;
       margin: 0px 0;
       border-radius: 20px;
       padding: 40px 35px;
       text-align: center;
       position: relative;
-      /* Needed for positioning the refresh icon */
       overflow: hidden;
-      /* This will clip the overflowing sun icon */
+      transition: background 1s ease-in-out;
+    }
 
-      /* --- Gradient Animation --- */
+    /* --- Dynamic Time-Based Themes --- */
+
+    /* Day Theme (6:00 - 16:59): Bright, energetic, blue/cyan/gold */
+    .card.day-theme {
+      background: linear-gradient(125deg, #4facfe, #00f2fe, #38f9d7, #4facfe);
+      background-size: 400% 400%;
+      animation: gradientAnimation 20s ease infinite;
+    }
+
+    /* Dusk/Dawn Theme (17:00 - 19:59 & 4:00 - 5:59): Warm, pinks, purples, oranges */
+    .card.dusk-theme {
+      background: linear-gradient(125deg, #ff9966, #ff5e62, #984D7C, #ff9966);
+      background-size: 400% 400%;
+      animation: gradientAnimation 20s ease infinite;
+    }
+
+    /* Night Theme (20:00 - 3:59): Dark, deep blues, purples, starry feel */
+    .card.night-theme {
+      background: linear-gradient(125deg, #141E30, #243B55, #4b6cb7, #182848);
       background-size: 400% 400%;
       animation: gradientAnimation 20s ease infinite;
     }
@@ -115,48 +136,54 @@
       /* Prevent zoom on focus in iOS */
       font-size: max(16px, 18px);
     }
-/* Search Input Wrapper for positioning */
-.search-input-wrapper {
-    position: relative;
-    flex-grow: 1; /* Allow it to take up available space */
-    display: flex;
-    align-items: center;
-}
 
-/* Clear "x" Icon */
-.clear-icon {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #504e4e;
-    font-size: 1.39rem;
-    padding: 12px; /* Increase click area */
-    display: block; /* Ensure it takes up space */
-}
+    /* Search Input Wrapper for positioning */
+    .search-input-wrapper {
+      position: relative;
+      flex-grow: 1;
+      /* Allow it to take up available space */
+      display: flex;
+      align-items: center;
+    }
 
-.clear-icon:hover {
-    color: #ea1b1b;
-}
+    /* Clear "x" Icon */
+    .clear-icon {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #504e4e;
+      font-size: 1.39rem;
+      padding: 12px;
+      /* Increase click area */
+      display: block;
+      /* Ensure it takes up space */
+    }
 
-.clear-icon.hidden {
-    display: none;
-}
+    .clear-icon:hover {
+      color: #ea1b1b;
+    }
 
-/* Adjust search container to work with wrapper */
-.search {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px; /* Space between input and search button */
-}
+    .clear-icon.hidden {
+      display: none;
+    }
 
-/* Ensure input takes full width of its wrapper */
-.search input {
-    width: 100%;
-    padding-right: 35px; /* Make room for the clear icon */
-}
+    /* Adjust search container to work with wrapper */
+    .search {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      /* Space between input and search button */
+    }
+
+    /* Ensure input takes full width of its wrapper */
+    .search input {
+      width: 100%;
+      padding-right: 35px;
+      /* Make room for the clear icon */
+    }
 
     .search button {
       border: 0;
